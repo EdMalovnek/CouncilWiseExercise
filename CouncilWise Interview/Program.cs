@@ -53,8 +53,13 @@ namespace CouncilWise
 
             items = new List<ReceiptItem>();
             items.Add(new ReceiptItem { Name = "freebie eibeerf", Quantity = 4, UnitPrice = 1.15m, IncludesTax = true });
+            receiptResult = ProcessReceiptItems(items);
+            Console.WriteLine(receiptResult.ToString());
+
+            items = new List<ReceiptItem>();
             items.Add(new ReceiptItem { Name = "not a freebie", Quantity = 4, UnitPrice = 1.15m, IncludesTax = true });
             items.Add(new ReceiptItem { Name = "racecar", Quantity = 4, UnitPrice = 1.15m, IncludesTax = true });
+            items.Add(new ReceiptItem { Name = "Bread", Quantity = 0, UnitPrice = 1000m, IncludesTax = false });
             receiptResult = ProcessReceiptItems(items);
             Console.WriteLine(receiptResult.ToString());
 
@@ -68,33 +73,38 @@ namespace CouncilWise
         /// <returns>processed receipt</returns>
         static Receipt ProcessReceiptItems(ICollection<ReceiptItem> items)
         {
-            var receipt = new Receipt();
+            Receipt receipt = new Receipt(items, 0, 0);
+            decimal cost = 0;
 
             foreach (ReceiptItem item in items)
             {
-                //Console.WriteLine("{0}\t{1}\t{2}", item.Name.ToString(), item.Quantity.ToString(), item.UnitPrice.ToString());
-                if(CheckIfPalindrome(item.Name))
+                if (CheckIfPalindrome(item.Name))
                 {
-                    receipt.Total += 0;
-                }
-                else if(item.IncludesTax == true)
-                {
-                    receipt.Total += item.UnitPrice * 1.1m;
-                    receipt.TaxTotal += item.UnitPrice * 0.1m;
-                }
-                else if (item.IncludesTax == false)
-                {
-                    receipt.Total += item.UnitPrice;
+                    item.UnitPrice = 0;
                 }
 
-                Console.WriteLine(/*Item details as per spec*/);
+                cost = item.UnitPrice * item.Quantity;
+
+                if (item.IncludesTax == false)
+                {
+                    receipt.Total += cost * 1.1m;
+                }
+                else if (item.IncludesTax == true)
+                {
+                    receipt.Total += cost;
+                }
+
+                receipt.TaxTotal += cost * 0.1m;
             }
-
-            Console.WriteLine("Total:\t{0}\nGST:\t{1}", Helper.CurrencyRound(receipt.Total), Helper.CurrencyRound(receipt.TaxTotal));
 
             return receipt;
         }
 
+        /// <summary>
+        /// Pass in a word to check if it is a palindrome.
+        /// </summary>
+        /// <param name="itemName"></param>
+        /// <returns>boolean</returns>
         public static bool CheckIfPalindrome(string itemName)
         {
             string reversedItemName = string.Empty;
